@@ -103,7 +103,10 @@ namespace SocketException {
     class InvalidSocket : public std::exception { 
     public:
         int errcode;
+        char * strptr;
+
         InvalidSocket(int errcode);
+        ~InvalidSocket();
         const char *what() noexcept;
     };
 }

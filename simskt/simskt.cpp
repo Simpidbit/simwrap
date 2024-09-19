@@ -19,8 +19,20 @@ DEFINE_EXCEPTION_WHAT(TooManyProcesses, "Too many processes, close some of them 
 DEFINE_EXCEPTION_WHAT(EventInProgress, "Event in progress, the event you requested had been in progress.")
 DEFINE_EXCEPTION_WHAT(UnknownError, "Unknown error, I don\'t know what happened!")
 DEFINE_EXCEPTION_WHAT(VersionNotExist, "Version not exists. Make sure your version is valid. Maybe you can try to modify the variable \"version_required\" in \"simskt.cpp\".")
-DEFINE_EXCEPTION_WHAT(InvalidSocket, ((std::string)"Invalid socket: error code is " + std::to_string(this->errcode)).c_str())
+
 simpid::SocketException::InvalidSocket::InvalidSocket(int errcode) : errcode(errcode) {}
+const char * simpid::SocketException::InvalidSocket::what() noexcept
+{
+    std::string tmpstr = (std::string)"Invalid socket: error code = " + std::to_string(this->errcode);
+    this->strptr = new char(tmpstr.size() + 1);
+    memcpy(this->strptr, tmpstr.c_str(), tmpstr.size());
+    this->strptr[tmpstr.size()] = '\0';
+    return this->strptr;
+}
+simpid::SocketException::InvalidSocket::~InvalidSocket()
+{
+    delete this->strptr;
+}
 
 
 simpid::Socket::Socket(int domain, int type, 
