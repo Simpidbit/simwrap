@@ -9,9 +9,9 @@
 #include <string.h>
 #include <stdint.h>
 
-#ifdef _WIN32
+#ifdef _WIN32       // Windows
 #include <WinSock2.h>
-#else
+#else               // Unix
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -20,7 +20,7 @@
 #include <arpa/inet.h>
 #endif
 
-#ifdef __linux__
+#ifdef __linux__    // Linux 
 #include <sys/poll.h>
 #include <sys/epoll.h>
 #endif

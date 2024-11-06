@@ -10,6 +10,7 @@
 */
 
 #include "simskt.h"
+#include <iostream>
 
 #define DEFINE_EXCEPTION_WHAT(EXCEPTION_NAME, WHATSTR) \
     const char * simpid::SocketException::EXCEPTION_NAME::what() noexcept { return WHATSTR; }
@@ -253,13 +254,16 @@ simpid::Socket::recvall()
 {
     std::string msg;
 
-    char tmp[BUFSIZ];
-    while (this->recv(tmp, sizeof(tmp)) == sizeof(tmp)) {
+    char tmp[BUFSIZ + 1];
+    while (this->recv(tmp, BUFSIZ) == BUFSIZ) {
         msg = msg + (std::string)tmp;
-        memset(tmp, 0, sizeof(tmp));
+        memset(tmp, 0, BUFSIZ + 1);
     }
     msg = msg + (std::string)tmp;
-    memset(tmp, 0, sizeof(tmp));
+    memset(tmp, 0, BUFSIZ + 1);
+
+    std::cout << "recvall():" << msg.size() << std::endl
+              << "content:" << msg << std::endl;
 
     return msg;
 }
@@ -269,6 +273,7 @@ simpid::Socket::recv(char *buf, size_t length)
 {
     int tmp = 0;
     tmp = ::recv(this->skt, buf, length, 0);
+    if (tmp >= 0) buf[tmp] = '\0';
 #ifdef _WIN32
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
@@ -340,13 +345,16 @@ simpid::Client::recvall()
 {
     std::string msg;
 
-    char tmp[BUFSIZ];
-    while (this->recv(tmp, sizeof(tmp)) == sizeof(tmp)) {
+    char tmp[BUFSIZ + 1];
+    while (this->recv(tmp, BUFSIZ) == BUFSIZ) {
         msg = msg + (std::string)tmp;
-        memset(tmp, 0, sizeof(tmp));
+        memset(tmp, 0, BUFSIZ + 1);
     }
     msg = msg + (std::string)tmp;
-    memset(tmp, 0, sizeof(tmp));
+    memset(tmp, 0, BUFSIZ + 1);
+
+    std::cout << "recvall():" << msg.size() << std::endl
+              << "content:" << msg << std::endl;
 
     return msg;
 }
@@ -356,12 +364,13 @@ simpid::Client::recv(char *buf, size_t length)
 {
     int tmp = 0;
     tmp = ::recv(this->skt, buf, length, 0);
-#ifdef _WIN32
+    if (tmp >= 0) buf[tmp] = '\0';
+#ifdef _WIN32       // Windows
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
-#else
+#else               // Unix
     if (tmp < 0) {
         close(this->skt);
         fprintf(stderr, "errno: %d\n", errno);
