@@ -11,6 +11,7 @@
 
 #include "simskt.h"
 
+// 出错时是否抛出异常
 bool IF_THROW = true;
 
 #define DEFINE_EXCEPTION_WHAT(EXCEPTION_NAME, WHATSTR) \
