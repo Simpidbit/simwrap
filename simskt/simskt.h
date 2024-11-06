@@ -93,6 +93,7 @@ public:
     int recv(char *buf, size_t length);
 };
 
+
 namespace SocketException {
     class SystemNotReady : public std::exception { const char *what() noexcept; };
     class VersionNotSupported : public std::exception { const char *what() noexcept; };

@@ -10,7 +10,8 @@
 */
 
 #include "simskt.h"
-#include <iostream>
+
+bool IF_THROW = true;
 
 #define DEFINE_EXCEPTION_WHAT(EXCEPTION_NAME, WHATSTR) \
     const char * simpid::SocketException::EXCEPTION_NAME::what() noexcept { return WHATSTR; }
@@ -46,22 +47,26 @@ simpid::Socket::Socket(int domain, int type,
     switch(WSAStartup(version_required, &sock_msg)) {
         case WSASYSNOTREADY:
             WSACleanup();
-            throw simpid::SocketException::SystemNotReady();
+            if (IF_THROW) throw simpid::SocketException::SystemNotReady();
+            break;
         case WSAVERNOTSUPPORTED:
             WSACleanup();
-            throw simpid::SocketException::VersionNotSupported();
+            if (IF_THROW) throw simpid::SocketException::VersionNotSupported();
+            break;
         case WSAEPROCLIM:
             WSACleanup();
-            throw simpid::SocketException::TooManyProcesses();
+            if (IF_THROW) throw simpid::SocketException::TooManyProcesses();
+            break;
         case WSAEINPROGRESS:
             WSACleanup();
-            throw simpid::SocketException::EventInProgress();
+            if (IF_THROW) throw simpid::SocketException::EventInProgress();
+            break;
     }
 
     if (HIBYTE(sock_msg.wVersion) != 2
      || LOBYTE(sock_msg.wVersion) != 2) {
         WSACleanup();
-        throw simpid::SocketException::VersionNotExist();
+        if (IF_THROW) throw simpid::SocketException::VersionNotExist();
     }
 #endif
 
@@ -70,7 +75,7 @@ simpid::Socket::Socket(int domain, int type,
 #ifdef _WIN32
     if (this->skt == INVALID_SOCKET) {
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (this->skt == -1) {
@@ -114,7 +119,7 @@ simpid::Socket::bind(std::string ip, uint16_t port)
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp == -1) {
@@ -136,7 +141,7 @@ simpid::Socket::listen(int backlog)
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp < 0) {
@@ -165,7 +170,7 @@ simpid::Socket::accept()
     if (cli.skt == INVALID_SOCKET) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (cli.skt < 0) {
@@ -200,7 +205,7 @@ simpid::Socket::connect(std::string ip, uint16_t port)
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp == -1) {
@@ -228,7 +233,7 @@ simpid::Socket::send(const char *buf, size_t length)
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp < 0) {
@@ -262,9 +267,6 @@ simpid::Socket::recvall()
     msg = msg + (std::string)tmp;
     memset(tmp, 0, BUFSIZ + 1);
 
-    std::cout << "recvall():" << msg.size() << std::endl
-              << "content:" << msg << std::endl;
-
     return msg;
 }
 
@@ -278,7 +280,7 @@ simpid::Socket::recv(char *buf, size_t length)
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
         WSACleanup();
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp < 0) {
@@ -320,7 +322,7 @@ simpid::Client::send(const char *buf, size_t length)
 #ifdef _WIN32
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
     if (tmp < 0) {
@@ -353,9 +355,6 @@ simpid::Client::recvall()
     msg = msg + (std::string)tmp;
     memset(tmp, 0, BUFSIZ + 1);
 
-    std::cout << "recvall():" << msg.size() << std::endl
-              << "content:" << msg << std::endl;
-
     return msg;
 }
 
@@ -368,7 +367,7 @@ simpid::Client::recv(char *buf, size_t length)
 #ifdef _WIN32       // Windows
     if (tmp == SOCKET_ERROR) {
         closesocket(this->skt);
-        throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else               // Unix
     if (tmp < 0) {
