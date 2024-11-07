@@ -43,10 +43,21 @@ namespace simpid {
 
 class SocketAbstract {
 public:
+    SocketHandle        skt;
+    std::string         recvbuf;
+
+public:
     SocketAbstract() {}
     ~SocketAbstract() {}
 
     virtual void _init() = 0;
+
+    int send(std::string buf);
+    int send(const char *buf, size_t length);
+
+    std::string recv(size_t length = 1500);
+    std::string recvall();
+    int recv(char *buf, size_t length);
 };
 
 
@@ -70,14 +81,14 @@ public:
     int recv(char *buf, size_t length);
 };
 
-class Socket {
+class Server : public SocketAbstract {
 public:
-    Socket(
+    Server(
         int     domain      = AF_INET,
         int     type        = SOCK_STREAM,
         int     protocol    = IPPROTO_TCP
     );
-    ~Socket();
+    ~Server();
 
 // Server
     int bind(std::string ip, uint16_t port);
@@ -91,16 +102,6 @@ public:
     int domain;
     int type;
     int protocol;
-    SocketHandle skt;
-    // size: BUFSIZ
-    std::string recvbuf;
-
-    int send(std::string buf);
-    int send(const char *buf, size_t length);
-
-    std::string recv(size_t length = 1500);
-    std::string recvall();
-    int recv(char *buf, size_t length);
 };
 
 

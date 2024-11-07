@@ -37,7 +37,78 @@ simpid::SocketException::InvalidSocket::~InvalidSocket()
     delete this->strptr;
 }
 
+int
+simpid::SocketAbstract::send(std::string buf)
+{
+    return this->send(buf.c_str(), buf.size());
+}
 
+int
+simpid::SocketAbstract::send(const char *buf, size_t length)
+{
+    int tmp = 0;
+    tmp = ::send(this->skt, buf, length, 0);
+#ifdef _WIN32
+    if (tmp == SOCKET_ERROR) {
+        closesocket(this->skt);
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+    }
+#else
+    if (tmp < 0) {
+        close(this->skt);
+        fprintf(stderr, "errno: %d\n", errno);
+        fprintf(stderr, "An error threw by connect(): %s\n", strerror(errno));
+        exit(6);
+    }
+#endif
+    return tmp;
+}
+
+std::string 
+simpid::SocketAbstract::recv(size_t length = 1500)
+{
+    this->recv(const_cast<char *>(this->recvbuf.c_str()), this->recvbuf.size());
+    return this->recvbuf;
+}
+
+std::string
+simpid::SocketAbstract::recvall()
+{
+    std::string msg;
+
+    char tmp[BUFSIZ + 1];
+    while (this->recv(tmp, BUFSIZ) == BUFSIZ) {
+        msg = msg + (std::string)tmp;
+        memset(tmp, 0, BUFSIZ + 1);
+    }
+    msg = msg + (std::string)tmp;
+    memset(tmp, 0, BUFSIZ + 1);
+
+    return msg;
+}
+
+int
+simpid::SocketAbstract::recv(char * buf, size_t length)
+{
+    int tmp = 0;
+    tmp = ::recv(this->skt, buf, length, 0);
+    if (tmp >= 0) buf[tmp] = '\0';
+#ifdef _WIN32
+    if (tmp == SOCKET_ERROR) {
+        closesocket(this->skt);
+        WSACleanup();
+        if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
+    }
+#else
+    if (tmp < 0) {
+        close(this->skt);
+        fprintf(stderr, "errno: %d\n", errno);
+        fprintf(stderr, "An error threw by recv(): %s\n", strerror(errno));
+        exit(7);
+    }
+#endif
+    return tmp;
+}
 
 
 simpid::Socket::Socket(int domain, int type, 
