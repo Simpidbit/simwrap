@@ -33,6 +33,7 @@
 #endif
 
 */
+
 namespace simpid {
 
 #ifdef _WIN32
@@ -47,10 +48,15 @@ public:
     std::string         recvbuf;
 
 public:
-    SocketAbstract() {}
-    ~SocketAbstract() {}
+    SocketAbstract();
+    SocketAbstract(
+        int     domain      = AF_INET,
+        int     type        = SOCK_STREAM,
+        int     protocol    = IPPROTO_TCP
+    );
+    ~SocketAbstract();
 
-    virtual void _init() = 0;
+    virtual void _abstract() = 0;
 
     int send(std::string buf);
     int send(const char *buf, size_t length);
@@ -62,46 +68,44 @@ public:
 
 
 
-class Client {
+class Client : public SocketAbstract {
 public:
-    SocketHandle    skt;
     std::string     ip;
     uint16_t        port;
 
-    std::string     recvbuf;
-    
+public:
+    Client(
+        int     domain      = AF_INET,
+        int     type        = SOCK_STREAM,
+        int     protocol    = IPPROTO_TCP
+    );
 
-    Client();
-    ~Client();
-    int send(std::string buf);
-    int send(const char *buf, size_t length);
+    void _abstract() override;
 
-    std::string recv(size_t length = 1500);
-    std::string recvall();
-    int recv(char *buf, size_t length);
+// Client
+    int connect(std::string ip, uint16_t port);
 };
 
 class Server : public SocketAbstract {
+public:
+    int domain;
+    int type;
+    int protocol;
+
 public:
     Server(
         int     domain      = AF_INET,
         int     type        = SOCK_STREAM,
         int     protocol    = IPPROTO_TCP
     );
-    ~Server();
+
+    void _abstract() override;
 
 // Server
     int bind(std::string ip, uint16_t port);
     int listen(int backlog);
     Client accept();
 
-// Client
-    int connect(std::string ip, uint16_t port);
-
-// Both
-    int domain;
-    int type;
-    int protocol;
 };
 
 

@@ -6,30 +6,10 @@ using namespace std;
 using namespace simpid;
 
 
-class Base {
-public:
-    Base() { cout << "Base()" << endl; }
-    ~Base() {}
-
-    virtual void _init() = 0;
-};
-
-class Derived : public Base {
-public:
-    void _init() override {
-        cout << "Hello _init()" << endl;
-    }
-
-    Derived() {
-        this->_init();
-    }
-};
-
 int main()
 {
-    Derived d;
-    Socket s;
-    s.bind("0.0.0.0", 8888);
+    Server s;
+    s.bind("0.0.0.0", 12348);
     s.listen(32);
     
     Client cli = s.accept();
@@ -40,6 +20,12 @@ int main()
         cout << msg << flush;
         cli.send(msg);
     }
+
+    /*
+    Client cli;
+    cli.connect("127.0.0.1", 12348);
+    cli.send("Hello\n");
+    */
     
     return 0;
 }
