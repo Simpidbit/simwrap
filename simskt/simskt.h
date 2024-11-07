@@ -45,7 +45,12 @@ namespace simpid {
 class SocketAbstract {
 public:
     SocketHandle        skt;
-    std::string         recvbuf;
+    char *              recvbuf;
+    size_t              recvbuflen;
+
+    int domain;
+    int type;
+    int protocol;
 
 public:
     SocketAbstract();

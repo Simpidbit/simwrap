@@ -1,6 +1,5 @@
 这是一个支持`Linux`、`macOS`、`Windows`的跨平台socket接口封装
 
-
 ## 使用方法
 
 下载`simskt.cpp`和`simskt.h`
@@ -24,7 +23,7 @@ using namespace simpid;
 
 int main()
 {
-    Socket s;
+    Server s;
     s.bind("0.0.0.0", 8888);
     s.listen(32);
     
@@ -33,7 +32,7 @@ int main()
     while(1) {
         string msg = cli.recvall();
         if (msg.size() == 0) break;
-        cout << msg << flush;
+        cout << msg << endl;
         cli.send(msg);
     }
     
@@ -41,4 +40,17 @@ int main()
 }
 
 ```
-若用`MinGW`编译，则编译命令为`g++ -std=c++11 .\simskt.cpp .\test.cpp -lws2_32 -o test`
+
+## 编译方法
+
+#### Windows
+若用`MinGW`编译，则编译命令:
+```
+g++ -std=c++11 .\simskt.cpp .\test.cpp -lws2_32 -o test
+```
+
+#### Linux
+```
+g++ -std=c++11 ./simskt.cpp ./test.cpp -o test
+```
+

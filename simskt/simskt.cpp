@@ -39,13 +39,15 @@ simpid::SocketException::InvalidSocket::~InvalidSocket()
 
 simpid::SocketAbstract::SocketAbstract()
 {
-    this->recvbuf.resize(BUFSIZ);
-    std::fill(this->recvbuf.begin(), this->recvbuf.end(), '\0');
+    this->recvbuflen = BUFSIZ + 1;
+    this->recvbuf = (char *)malloc(this->recvbuflen);
+    memset(this->recvbuf, 0, this->recvbuflen);
 }
 
 simpid::SocketAbstract::SocketAbstract( int domain,
                                         int type, 
                                         int protocol)
+    : domain(domain), type(type), protocol(protocol)
 {
 #ifdef _WIN32
     WORD version_required = MAKEWORD(2, 2);
@@ -91,8 +93,9 @@ simpid::SocketAbstract::SocketAbstract( int domain,
         exit(1);
     }
 #endif
-    this->recvbuf.resize(BUFSIZ);
-    std::fill(this->recvbuf.begin(), this->recvbuf.end(), '\0');
+    this->recvbuflen = BUFSIZ + 1;
+    this->recvbuf = (char *)malloc(this->recvbuflen);
+    memset(this->recvbuf, 0, this->recvbuflen);
 }
 
 simpid::SocketAbstract::~SocketAbstract()
@@ -136,8 +139,9 @@ simpid::SocketAbstract::send(const char *buf, size_t length)
 std::string 
 simpid::SocketAbstract::recv(size_t length)
 {
-    this->recv(const_cast<char *>(this->recvbuf.c_str()), this->recvbuf.size());
-    return this->recvbuf;
+    size_t n = this->recv(this->recvbuf, this->recvbuflen - 1);
+    if (n >= 0) this->recvbuf[n] = '\0';
+    return std::string(this->recvbuf);
 }
 
 std::string
@@ -159,7 +163,9 @@ simpid::SocketAbstract::recvall()
 int
 simpid::SocketAbstract::recv(char * buf, size_t length)
 {
+    // length 默认是比buf的长度要小的
     int tmp = 0;
+    memset(buf, 0, length);
     tmp = ::recv(this->skt, buf, length, 0);
     if (tmp >= 0) buf[tmp] = '\0';
 #ifdef _WIN32
@@ -296,7 +302,7 @@ simpid::Client::connect(std::string ip, uint16_t port)
 #else
     struct sockaddr_in servaddr;
 #endif
-    servaddr.sin_family = AF_INET;
+    servaddr.sin_family = this->domain;
     servaddr.sin_addr.s_addr = inet_addr(ip.c_str());
     servaddr.sin_port = htons(port);
 

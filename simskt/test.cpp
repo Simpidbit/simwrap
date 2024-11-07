@@ -15,10 +15,10 @@ int main()
     Client cli = s.accept();
     cli.send("Hello");
     while(1) {
-        string msg = cli.recvall();
+        string msg = cli.recv(1024);
         if (msg.size() == 0) break;
         cout << msg << flush;
-        cli.send(msg);
+        //cli.send(msg);
     }
 
     /*
