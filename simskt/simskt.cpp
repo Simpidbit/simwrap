@@ -38,6 +38,8 @@ simpid::SocketException::InvalidSocket::~InvalidSocket()
 }
 
 
+
+
 simpid::Socket::Socket(int domain, int type, 
                        int protocol)
 {

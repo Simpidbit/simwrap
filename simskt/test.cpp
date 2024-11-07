@@ -5,8 +5,29 @@
 using namespace std;
 using namespace simpid;
 
+
+class Base {
+public:
+    Base() { cout << "Base()" << endl; }
+    ~Base() {}
+
+    virtual void _init() = 0;
+};
+
+class Derived : public Base {
+public:
+    void _init() override {
+        cout << "Hello _init()" << endl;
+    }
+
+    Derived() {
+        this->_init();
+    }
+};
+
 int main()
 {
+    Derived d;
     Socket s;
     s.bind("0.0.0.0", 8888);
     s.listen(32);

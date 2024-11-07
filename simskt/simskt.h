@@ -41,6 +41,16 @@ namespace simpid {
     using   SocketHandle    = int;
 #endif
 
+class SocketAbstract {
+public:
+    SocketAbstract() {}
+    ~SocketAbstract() {}
+
+    virtual void _init() = 0;
+};
+
+
+
 class Client {
 public:
     SocketHandle    skt;
