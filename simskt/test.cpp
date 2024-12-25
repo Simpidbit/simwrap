@@ -17,7 +17,7 @@ int main()
     while(1) {
         string msg = cli.recvall();
         if (msg.size() == 0) break;
-        cout << msg << flush;
+        cout << msg << endl;
     }
 
     
