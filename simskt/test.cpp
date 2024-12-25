@@ -19,7 +19,6 @@ int main()
         if (msg.size() == 0) break;
         cout << msg << endl;
     }
-
     
     return 0;
 }
