@@ -1,3 +1,4 @@
+#include "simskt.h"
 /*
    linux下程序的返回值:
     1 - socket() 出错
@@ -11,11 +12,13 @@
 
 #include "simskt.h"
 
+#include <iostream>
+
 // 出错时是否抛出异常
 bool IF_THROW = true;
 
 #define DEFINE_EXCEPTION_WHAT(EXCEPTION_NAME, WHATSTR) \
-    const char * simpid::SocketException::EXCEPTION_NAME::what() noexcept { return WHATSTR; }
+const char * simpid::SocketException::EXCEPTION_NAME::what() noexcept { return WHATSTR; }
 DEFINE_EXCEPTION_WHAT(SystemNotReady, "System was not ready, check your system settings, win32 library or environment configuration. Error code: 10091.")
 DEFINE_EXCEPTION_WHAT(VersionNotSupported, "Version was not supported by your network library.")
 DEFINE_EXCEPTION_WHAT(TooManyProcesses, "Too many processes, close some of them and try again.")
@@ -45,8 +48,8 @@ simpid::SocketAbstract::SocketAbstract()
 }
 
 simpid::SocketAbstract::SocketAbstract( int domain,
-                                        int type, 
-                                        int protocol)
+                                       int type,
+                                       int protocol)
     : domain(domain), type(type), protocol(protocol)
 {
 #ifdef _WIN32
@@ -54,26 +57,26 @@ simpid::SocketAbstract::SocketAbstract( int domain,
     WSADATA sock_msg;
 
     switch(WSAStartup(version_required, &sock_msg)) {
-        case WSASYSNOTREADY:
-            WSACleanup();
-            if (IF_THROW) throw simpid::SocketException::SystemNotReady();
-            break;
-        case WSAVERNOTSUPPORTED:
-            WSACleanup();
-            if (IF_THROW) throw simpid::SocketException::VersionNotSupported();
-            break;
-        case WSAEPROCLIM:
-            WSACleanup();
-            if (IF_THROW) throw simpid::SocketException::TooManyProcesses();
-            break;
-        case WSAEINPROGRESS:
-            WSACleanup();
-            if (IF_THROW) throw simpid::SocketException::EventInProgress();
-            break;
+    case WSASYSNOTREADY:
+        WSACleanup();
+        if (IF_THROW) throw simpid::SocketException::SystemNotReady();
+        break;
+    case WSAVERNOTSUPPORTED:
+        WSACleanup();
+        if (IF_THROW) throw simpid::SocketException::VersionNotSupported();
+        break;
+    case WSAEPROCLIM:
+        WSACleanup();
+        if (IF_THROW) throw simpid::SocketException::TooManyProcesses();
+        break;
+    case WSAEINPROGRESS:
+        WSACleanup();
+        if (IF_THROW) throw simpid::SocketException::EventInProgress();
+        break;
     }
 
     if (HIBYTE(sock_msg.wVersion) != 2
-     || LOBYTE(sock_msg.wVersion) != 2) {
+        || LOBYTE(sock_msg.wVersion) != 2) {
         WSACleanup();
         if (IF_THROW) throw simpid::SocketException::VersionNotExist();
     }
@@ -136,7 +139,7 @@ simpid::SocketAbstract::send(const char *buf, size_t length)
     return tmp;
 }
 
-std::string 
+std::string
 simpid::SocketAbstract::recv(size_t length)
 {
     size_t n = this->recv(this->recvbuf, this->recvbuflen - 1);
@@ -163,13 +166,14 @@ simpid::SocketAbstract::recvall()
 int
 simpid::SocketAbstract::recv(char * buf, size_t length)
 {
-    // length 默认是比buf的长度要小的
+    // length 默认是不比buf的长度长的
     int tmp = 0;
     memset(buf, 0, length);
     tmp = ::recv(this->skt, buf, length, 0);
     if (tmp >= 0) buf[tmp] = '\0';
 #ifdef _WIN32
     if (tmp == SOCKET_ERROR) {
+        std::cout << "tmp is SOCKET_ERROR!" << std::endl;
         closesocket(this->skt);
         WSACleanup();
         if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
@@ -252,7 +256,7 @@ simpid::Server::listen(int backlog)
     return tmp;
 }
 
-simpid::Client
+simpid::Client *
 simpid::Server::accept()
 {
 #ifdef _WIN32
@@ -262,24 +266,27 @@ simpid::Server::accept()
     sockaddr_in cliaddr;
     socklen_t cliaddr_len;
 #endif
-    Client cli;
-    cli.skt = ::accept(this->skt, (struct sockaddr*)&cliaddr, &cliaddr_len);
+    Client *cli = new Client();
+    std::cout << "Inner Waiting..." << std::endl;
+    cli->skt = ::accept(this->skt, (struct sockaddr*)&cliaddr, &cliaddr_len);
+    std::cout << "Accept OK!" << std::endl;
 #ifdef _WIN32
-    if (cli.skt == INVALID_SOCKET) {
+    if (cli->skt == INVALID_SOCKET) {
         closesocket(this->skt);
         WSACleanup();
+        std::cout << "Going to THROW!!!" << std::endl;
         if (IF_THROW) throw simpid::SocketException::InvalidSocket(WSAGetLastError());
     }
 #else
-    if (cli.skt < 0) {
+    if (cli->skt < 0) {
         ::close(this->skt);
         fprintf(stderr, "errno: %d\n", errno);
         fprintf(stderr, "An error threw by accept(): %s\n", strerror(errno));
         exit(4);
     }
 #endif
-    cli.ip = inet_ntoa(cliaddr.sin_addr);
-    cli.port = cliaddr.sin_port;
+    cli->ip = inet_ntoa(cliaddr.sin_addr);
+    cli->port = cliaddr.sin_port;
     return cli;
 }
 
