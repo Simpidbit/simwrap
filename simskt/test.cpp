@@ -15,17 +15,11 @@ int main()
     Client cli = s.accept();
     cli.send("Hello");
     while(1) {
-        string msg = cli.recv(1024);
+        string msg = cli.recvall();
         if (msg.size() == 0) break;
         cout << msg << flush;
-        //cli.send(msg);
     }
 
-    /*
-    Client cli;
-    cli.connect("127.0.0.1", 12348);
-    cli.send("Hello\n");
-    */
     
     return 0;
 }
