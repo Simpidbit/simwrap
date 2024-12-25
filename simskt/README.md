@@ -16,6 +16,7 @@ Example：main.cpp
 ```cpp
 // 一个简单的复读程序：先发送"Hello"，之后收到的消息全部发送回去，并显示在屏幕上
 #include <iostream>
+#include <string>
 #include "simskt.h"
 
 using namespace std;
