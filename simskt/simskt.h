@@ -3,7 +3,6 @@
 
 #include <string>
 #include <exception>
-#include <algorithm>
 
 #include <stdio.h>
 #include <string.h>
@@ -20,7 +19,7 @@
 #include <arpa/inet.h>
 #endif
 
-#ifdef __linux__    // Linux 
+#ifdef __linux__    // Linux
 #include <sys/poll.h>
 #include <sys/epoll.h>
 #endif
@@ -37,9 +36,9 @@
 namespace simpid {
 
 #ifdef _WIN32
-    using   SocketHandle    = SOCKET;
+using   SocketHandle    = SOCKET;
 #else
-    using   SocketHandle    = int;
+using   SocketHandle    = int;
 #endif
 
 class SocketAbstract {
@@ -58,7 +57,7 @@ public:
         int     domain      = AF_INET,
         int     type        = SOCK_STREAM,
         int     protocol    = IPPROTO_TCP
-    );
+        );
     ~SocketAbstract();
 
     virtual void _abstract() = 0;
@@ -82,12 +81,11 @@ public:
     Client(
         int     domain      = AF_INET,
         int     type        = SOCK_STREAM,
-        int     protocol    = IPPROTO_TCP
-    );
+        int     protocol    = IPPROTO_TCP);
 
     void _abstract() override;
 
-// Client
+    // Client
     int connect(std::string ip, uint16_t port);
 };
 
@@ -102,34 +100,34 @@ public:
         int     domain      = AF_INET,
         int     type        = SOCK_STREAM,
         int     protocol    = IPPROTO_TCP
-    );
+        );
 
     void _abstract() override;
 
-// Server
+    // Server
     int bind(std::string ip, uint16_t port);
     int listen(int backlog);
-    Client accept();
+    Client* accept();
 
 };
 
 
 namespace SocketException {
-    class SystemNotReady : public std::exception { const char *what() noexcept; };
-    class VersionNotSupported : public std::exception { const char *what() noexcept; };
-    class TooManyProcesses : public std::exception { const char *what() noexcept; };
-    class EventInProgress : public std::exception { const char *what() noexcept; };
-    class UnknownError : public std::exception { const char *what() noexcept; };
-    class VersionNotExist : public std::exception { const char *what() noexcept; };
-    class InvalidSocket : public std::exception { 
-    public:
-        int errcode;
-        char * strptr;
+class SystemNotReady : public std::exception { const char *what() noexcept; };
+class VersionNotSupported : public std::exception { const char *what() noexcept; };
+class TooManyProcesses : public std::exception { const char *what() noexcept; };
+class EventInProgress : public std::exception { const char *what() noexcept; };
+class UnknownError : public std::exception { const char *what() noexcept; };
+class VersionNotExist : public std::exception { const char *what() noexcept; };
+class InvalidSocket : public std::exception {
+public:
+    int errcode;
+    char * strptr;
 
-        InvalidSocket(int errcode);
-        ~InvalidSocket();
-        const char *what() noexcept;
-    };
+    InvalidSocket(int errcode);
+    ~InvalidSocket();
+    const char *what() noexcept;
+};
 }
 
 }
